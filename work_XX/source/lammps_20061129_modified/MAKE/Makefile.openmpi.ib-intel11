@@ -1,0 +1,129 @@
+# linux = RedHat Linux box, Intel icc, MPICH2, FFTW
+
+SHELL = /bin/sh
+
+# ---------------------------------------------------------------------
+
+INTEL_C_ROOT=/opt/intel/Compiler/11
+INTEL_C_BIN=$(INTEL_C_ROOT)/bin/intel64/icpc
+INTEL_C_LIB=$(INTEL_C_ROOT)/lib/intel64
+INTEL_C_INC=$(INTEL_C_ROOT)/include
+
+INTEL_MKL_ROOT=/opt/intel/Compiler/11/mkl
+INTEL_MKL_LIB=$(INTEL_MKL_ROOT)/lib/em64t
+INTEL_MKL_INC=$(INTEL_MKL_ROOT)/include
+
+INTEL_F_ROOT=/opt/intel/Compiler/11
+INTEL_F_BIN=$(INTEL_F_ROOT)/bin/intel64/ifort
+INTEL_F_LIB=$(INTEL_F_ROOT)/lib/intel64
+INTEL_F_INC=$(INTEL_F_ROOT)/include
+
+CUDA_ROOT=/opt/nvidia/cuda/3.0
+CUDA_LIB=$(CUDA_ROOT)/lib64
+
+#MPI_ROOT=/opt/mpich2/ch3_mrail_gen2-intel11
+#MPI_LIB_NAME=-lmpich
+
+MPI_ROOT=/opt/open-mpi/ib-intel11
+MPI_LIB_NAME=-lmpi
+
+MPI_C=$(MPI_ROOT)/bin/mpicxx
+MPI_LIB=$(MPI_ROOT)/lib
+MPI_INCLUDE=$(MPI_ROOT)/include
+
+# ---------------------------------------------------------------------
+# compiler/linker settings
+# specify flags and libraries needed for your compiler
+
+CC =		$(MPI_C)
+CCFLAGS =	-O1 -L$(INTEL_C_LIB) -Wl,-rpath -Wl,$(INTEL_C_LIB) -I$(INTEL_C_INC) -funroll-loops -fno-strict-aliasing -Wall -W -Wno-uninitialized 
+DEPFLAGS =	-M
+LINK =		$(MPI_C)
+LINKFLAGS =	-O2 -L$(INTEL_C_LIB) -Wl,-rpath -Wl,$(INTEL_C_LIB)
+LIB =       -lstdc++
+ARCHIVE =	ar
+ARFLAGS =	-rcsv
+SIZE =		size
+
+# ---------------------------------------------------------------------
+# LAMMPS-specific settings
+# specify settings for LAMMPS features you will use
+
+# LAMMPS ifdef options, see doc/Section_start.html
+
+LMP_INC =	-DLAMMPS_GZIP
+
+# MPI library, can be src/STUBS dummy lib
+# INC = path for mpi.h, MPI compiler settings
+# PATH = path for MPI library
+# LIB = name of MPI library
+
+MPI_INC =   -I$(MPI_INCLUDE)    -DMPICH_IGNORE_CXX_SEEK 
+MPI_PATH =  -L$(MPI_LIB) -Wl,-rpath -Wl,$(MPI_LIB)
+MPI_LIB =   $(MPI_LIB_NAME) -lpthread
+
+# FFT library, can be -DFFT_NONE if not using PPPM from KSPACE package
+# INC = -DFFT_FFTW, -DFFT_INTEL, -DFFT_NONE, etc, FFT compiler settings
+# PATH = path for FFT library
+# LIB = name of FFT library
+
+# The -DFFT_INTEL options seems to want to use symbols found only in the IA64 MKL.
+
+FFT_INC  =   -I$(INTEL_MKL_INC)/fftw -DFFT_FFTW
+#FFT_PATH =   -L$(INTEL_MKL_ROOT)/fftw3 -Wl,-rpath -Wl,$(INTEL_MKL_ROOT)/fftw3
+#FFT_PATH =   -L$(INTEL_MKL_ROOT)/fftw3 
+FFT_PATH =   -L$(INTEL_MKL_LIB)
+#FFT_LIB  =   $(INTEL_MKL_LIB)/libfftw2xc_intel.a $(INTEL_MKL_LIB)/libfftw2x_cdft_DOUBLE.a
+FFT_LIB  =   -L$(INTEL_MKL_LIB) -Wl,-rpath -Wl,$(INTEL_MKL_LIB) -lmkl_intel_lp64 -lmkl_sequential -lmkl_core $(INTEL_MKL_LIB)/libfftw2xc_intel.a $(INTEL_MKL_LIB)/libfftw2x_cdft_DOUBLE.a 
+
+# additional system libraries needed by LAMMPS package libraries
+# these settings are IGNORED if the corresponding LAMMPS package
+#   (e.g. gpu, meam) is NOT included in the LAMMPS build
+# SYSLIB = names of libraries
+# SYSPATH = paths of libraries
+
+gpu_SYSLIB =       -lcudart
+meam_SYSLIB =      -lifcore -lsvml -lompstub -limf
+reax_SYSLIB =      -lifcore -lsvml -lompstub -limf
+#user-atc_SYSLIB =  -lblas -llapack
+user-atc_SYSLIB =  -L$(INTEL_MKL_LIB) -Wl,-rpath -Wl,$(INTEL_MKL_LIB) -lmkl_intel_lp64 -lmkl_sequential -lmkl_core $(INTEL_MKL_ROOT)/blas95/lib/em64t/libmkl_blas95_lp64.a $(INTEL_MKL_ROOT)/lapack95/lib/em64t/libmkl_lapack95_lp64.a
+
+gpu_SYSPATH =      -L$(CUDA_LIB)
+meam_SYSPATH =     -L$(INTEL_F_LIB) 
+reax_SYSPATH =     -L$(INTEL_F_LIB)
+#user-atc_SYSPATH = -L$(INTEL_MKL_ROOT)/blas95/lib/em64t -Wl,-rpath -Wl,$(INTEL_MKL_ROOT)/blas95/lib/em64t -L$(INTEL_MKL_ROOT)/lapack95/lib/em64t -Wl,-rpath -Wl,$(INTEL_MKL_ROOT)/lapack95/lib/em64t
+user-atc_SYSPATH = -L$(INTEL_MKL_LIB) -Wl,-rpath -Wl,$(INTEL_MKL_LIB) -lmkl_intel_lp64 -lmkl_sequential -lmkl_core -L$(INTEL_MKL_ROOT)/blas95/lib/em64t -L$(INTEL_MKL_ROOT)/lapack95/lib/em64t 
+
+# ---------------------------------------------------------------------
+# build rules and dependencies
+# no need to edit this section
+
+## include	Makefile.package
+
+EXTRA_INC = $(LMP_INC) $(PKG_INC) $(MPI_INC) $(FFT_INC)
+EXTRA_PATH = $(PKG_PATH) $(MPI_PATH) $(FFT_PATH) $(PKG_SYSPATH)
+EXTRA_LIB = $(PKG_LIB) $(MPI_LIB) $(FFT_LIB) $(PKG_SYSLIB)
+
+# Link target
+
+$(EXE):	$(OBJ)
+	$(LINK) $(LINKFLAGS) $(EXTRA_PATH) $(OBJ) $(EXTRA_LIB) $(LIB) -o $(EXE)
+	$(SIZE) $(EXE)
+
+# Library target
+
+lib:	$(OBJ)
+	$(ARCHIVE) $(ARFLAGS) $(EXE) $(OBJ)
+
+# Compilation rules
+
+%.o:%.cpp
+	$(CC) $(CCFLAGS) $(EXTRA_INC) -c $<
+
+%.d:%.cpp
+	$(CC) $(CCFLAGS) $(EXTRA_INC) $(DEPFLAGS) $< > $@
+
+# Individual dependencies
+
+DEPENDS = $(OBJ:.o=.d)
+include $(DEPENDS)

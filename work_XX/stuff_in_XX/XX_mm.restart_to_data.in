@@ -1,0 +1,24 @@
+units         metal
+atom_style    atomic
+pair_style    eam/fs
+boundary      s p p
+
+read_restart  Q.min.restart
+
+pair_coeff    * * ../../potential/XX_mm.eam.fs XX XX XX XX XX
+
+neighbor 0.2 bin
+neigh_modify  every 1  delay 1  check yes
+
+timestep 0.001
+
+# output
+thermo 1000
+thermo_modify flush yes
+
+dump xyz  all data 1000 Q.min.restart.data
+dump_modify xyz scale no 
+
+
+run 0
+

@@ -1,0 +1,18 @@
+#!/bin/bash
+#$ -cwd
+#$ -o Q.job.out
+#$ -e Q.error
+#$ -j y
+#$ -q long.q
+#$ -S /bin/bash
+#$ -N Q
+#$ -pe orte 32
+
+MPI_ROOT="/opt/open-mpi"
+MPIRUN_BIN="${MPI_ROOT}/bin/mpirun"
+
+NPROCS=$NSLOTS
+MYMPIPROG="../build_gb_diwo" 
+TASK_LIST="Q.task_list"
+
+${MPIRUN_BIN} -np ${NPROCS} ${MYMPIPROG} < ${TASK_LIST} 

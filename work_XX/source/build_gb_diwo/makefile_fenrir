@@ -1,0 +1,258 @@
+
+INTEL_C_ROOT=/opt/intel/Compiler/11
+INTEL_C_BIN=$(INTEL_C_ROOT)/bin/intel64/icpc
+INTEL_C_LIB=$(INTEL_C_ROOT)/lib/intel64
+INTEL_C_INC=$(INTEL_C_ROOT)/include
+
+INTEL_MKL_ROOT=/opt/intel/Compiler/11/mkl
+INTEL_MKL_LIB=$(INTEL_MKL_ROOT)/lib/em64t
+INTEL_MKL_INC=$(INTEL_MKL_ROOT)/include
+
+INTEL_F_ROOT=/opt/intel/Compiler/11
+INTEL_F_BIN=$(INTEL_F_ROOT)/bin/intel64/ifort
+INTEL_F_LIB=$(INTEL_F_ROOT)/lib/intel64
+INTEL_F_INC=$(INTEL_F_ROOT)/include
+
+CUDA_ROOT=/opt/nvidia/cuda/3.0
+CUDA_LIB=$(CUDA_ROOT)/lib64
+
+#MPI_ROOT=/opt/mpich2/ch3_mrail_gen2-intel11
+#MPI_LIB_NAME=-lmpich
+
+MPI_ROOT=/opt/open-mpi/ib-intel11
+MPI_LIB_NAME=-lmpi
+
+MPI_C=$(MPI_ROOT)/bin/mpicxx
+MPI_LIB=$(MPI_ROOT)/lib
+MPI_INCLUDE=$(MPI_ROOT)/include
+
+
+%.o : %.f90
+	$(F90) -c $(FFLAGS) $< -o $@
+%.o : %.cpp
+	$(CC) -c $(CCFLAGS) $< -o $@
+
+
+F90 = mpif90
+FC  = ${F90}
+
+ALL_FFLAGS = -assume nounderscore -warn all  -warn noerrors  -check bounds -check format -check uninit
+DEBUG_FFLAGS = -O0 -g  ${ALL_FFLAGS}
+PROD_FFLAGS = ${ALL_FFLAGS}
+
+FFLAGS = ${PROD_FFLAGS} -I/home/olmsted/EAM/util/build_mpi 
+
+##CC =            mpicxx  -I${LAMMPS}
+## CCFLAGS =       -O -DFFT_FFTW -I${FFTW}/fftw
+##CCFLAGS = -O
+##LINK =          mpicxx
+##LINKFLAGS =     -O
+
+CC =            $(MPI_C) 
+CCFLAGS =       -DBGB_NO_UNDERSCORES -O1 -I${LAMMPS} -L$(INTEL_C_LIB) -Wl,-rpath -Wl,$(INTEL_C_LIB) -I$(INTEL_C_INC) -funroll-loops -fno-strict-aliasing -Wall -W -Wno-uninitialized 
+
+LINK =          $(MPI_C)
+LINKFLAGS =     -O2 -L$(INTEL_C_LIB) -Wl,-rpath -Wl,$(INTEL_C_LIB)
+
+
+DSC_OBJECTS = material.o crystal.o build_gb_stuff_dsc.o build_gb_input.o         \
+              build_gb_sub_dsc.o    \
+              build_gb_params.o build_gb_global.o build_gb_control.o             \
+              neighbors.o boundary.o lammps_data_file.o                    \
+              randomize_type_dsc.o build_gb_atom_data.o build_gb_atom_code_dsc.o \
+              call_lammps_dsc.o x_dir_to_crystal.o
+
+CPP_OBJECTS = material.o crystal.o build_gb_stuff_dsc.o build_gb_input.o         \
+              build_gb_global_for_cpp.o build_gb_for_cpp.o                       \
+              build_gb_cpp_stuff.o  build_gb_cpp.o                               \
+              build_gb_params.o build_gb_global.o build_gb_control.o             \
+              neighbors.o fcc.o boundary.o lammps_data_file.o                    \
+              randomize_type_dsc.o build_gb_atom_data.o build_gb_atom_code_dsc.o \
+              get_lammps_result.o x_dir_to_crystal.o
+
+DIWO_OBJECTS = everybody.o team.o worker.o dispatcher.o drone.o \
+               test_char_string_stuff.o \
+               build_gb_diwo_main.o \
+               build_gb_diwo.o build_gb_diwo_stuff.o \
+               build_gb_for_diwo.o build_gb_global_for_diwo.o \
+               material.o crystal.o lammps_data_file.o \
+               build_gb_params.o build_gb_control.o boundary.o neighbors.o \
+               build_gb_atom_data.o build_gb_atom_code_dsc.o \
+               x_dir_to_crystal.o build_gb_global.o build_gb_input.o \
+               build_gb_stuff_dsc.o randomize_type_dsc.o get_lammps_result_diwo.o \
+               build_gb_run_out.o copy_file.o
+               
+
+OBJECTS = material.o crystal.o build_gb_stuff.o build_gb_input.o build_gb_sub.o    \
+          build_gb_params.o build_gb_global.o build_gb_control.o                    \
+          neighbors.o fcc.o boundary.o lammps_data_file.o                  \
+          randomize_type.o build_gb_atom_data.o build_gb_atom_code.o       \
+          call_lammps.o x_dir_to_crystal.o
+
+OTHER_OBJECTS = gb_energy_input_dsc.o gb_energy_input_diwo.o
+
+OBJECTS_OLD = material.o crystal.o build_gb_stuff_old.o gb_input.o build_gb_old.o    \
+          gb_atoms_old.o neighbors_old.o fcc.o boundary_old.o lammps_data_file.o        \
+          randomize_type_old.o
+
+##FFTW =         /apps/x86_64/libraries/fftw/openmpi-1.1.2-ofed-intel-9.1/fftw-2.1.5
+##LIB_FFTW = -L${FFTW}/lib -lfftw
+
+##FFT_PATH =   -L$(INTEL_MKL_LIB)
+##FFT_LIB  =   -L$(INTEL_MKL_LIB) -Wl,-rpath -Wl,$(INTEL_MKL_LIB) -lmkl_intel_lp64 -lmkl_sequential -lmkl_core $(INTEL_MKL_LIB)/libfftw2xc_intel.a $(INTEL_MKL_LIB)/libfftw2x_cdft_DOUBLE.a
+
+LIB_FFTW = -L$(INTEL_MKL_LIB) -Wl,-rpath -Wl,$(INTEL_MKL_LIB) -lmkl_intel_lp64 -lmkl_sequential -lmkl_core $(INTEL_MKL_LIB)/libfftw2xc_intel.a $(INTEL_MKL_LIB)/libfftw2x_cdft_DOUBLE.a
+
+LAMMPS = /home/olmsted/lammps_20061129/src_ebyt_2
+LIB_LAMMPS = -L${LAMMPS} -llmp_openmpi.ib-intel11
+
+###LIB_FORTRAN = -L/apps/intel/fce/9.0.025/lib -lifcore
+###LIB_FORTRAN = -L/projects/global/x86_64/compilers/intel/intel-9.1-fc-040/lib -lifcore
+
+LIB_FORTRAN = -L/opt/intel/idbe/11/lib/intel64/ -lifcore -lstdc++
+
+LDLIBS = /home/olmsted/EAM/util/build_mpi/scatter_randomly_g95.o    \
+         /home/olmsted/EAM/util/build_mpi/delete_file.o             \
+         /home/olmsted/EAM/util/build_mpi/int_to_string2.o          \
+         /home/olmsted/EAM/util/build_mpi/jiggle_position.o         \
+         /home/olmsted/EAM/util/build_mpi/random_direction.o        \
+         /home/olmsted/EAM/util/build_mpi/random_numbers.o
+
+## LAPACK = -llapack -L/projects/gnu/gcc-3.4.3/lib -lg2c
+
+LAPACK =
+
+build_gb_control.o : build_gb_params.o
+build_gb_input.o : material.o crystal.o build_gb_params.o build_gb_control.o \
+                   build_gb_global.o build_gb_run_out.o
+build_gb_stuff.o : material.o build_gb_global.o build_gb_atom_data.o x_dir_to_crystal.o
+build_gb_stuff_dsc.o : material.o build_gb_global.o build_gb_atom_data.o    \
+                       x_dir_to_crystal.o build_gb_control.o                \
+                       system_interface.o
+build_gb.o       : material.o build_gb_input.o build_gb_stuff.o boundary.o     \
+                     randomize_type.o build_gb_sub.o build_gb_params.o         \
+                     crystal.o build_gb_atom_code.o build_gb_atom_data.o              \
+                     x_dir_to_crystal.o
+build_gb_dsc.o       : material.o build_gb_input.o build_gb_stuff_dsc.o boundary.o     \
+                     randomize_type_dsc.o build_gb_sub_dsc.o build_gb_params.o  \
+                     crystal.o build_gb_atom_code_dsc.o build_gb_atom_data.o              \
+                     x_dir_to_crystal.o
+material.o       : crystal.o
+neighbors.o      : build_gb_atom_data.o build_gb_global.o build_gb_params.o \
+                   build_gb_run_out.o
+boundary.o       : neighbors.o build_gb_global.o
+build_gb_atom_code.o : build_gb_global.o lammps_data_file.o randomize_type.o
+build_gb_atom_code_dsc.o : build_gb_global.o lammps_data_file.o randomize_type_dsc.o
+build_gb_sub.o   : build_gb_params.o build_gb_control.o material.o build_gb_input.o   \
+                     build_gb_stuff.o build_gb_atom_data.o boundary.o call_lammps.o   \
+                     build_gb_atom_code.o x_dir_to_crystal.o
+build_gb_sub_dsc.o  : build_gb_params.o build_gb_control.o           \
+                      material.o build_gb_input.o                     \
+                      build_gb_stuff_dsc.o build_gb_atom_data.o        \
+                      boundary.o call_lammps_dsc.o                      \
+                      build_gb_atom_code_dsc.o x_dir_to_crystal.o    \
+                      system_interface.o
+
+call_lammps_dsc.o  :  system_interface.o
+
+build_gb_global_for_cpp.o  : build_gb_params.o build_gb_control.o           \
+                             material.o build_gb_input.o                     \
+                             build_gb_stuff_dsc.o build_gb_atom_data.o        \
+                             boundary.o                     \
+                             build_gb_atom_code_dsc.o x_dir_to_crystal.o        \
+                             build_gb_global.o get_lammps_result.o
+
+build_gb_global_for_diwo.o : build_gb_params.o build_gb_control.o           \
+                             material.o build_gb_input.o                     \
+                             build_gb_stuff_dsc.o build_gb_atom_data.o        \
+                             boundary.o                     \
+                             build_gb_atom_code_dsc.o x_dir_to_crystal.o        \
+                             build_gb_global.o get_lammps_result_diwo.o     \
+                             system_interface.o
+
+build_gb_for_cpp.o : build_gb_global_for_cpp.o 
+build_gb_cpp_stuff.o : build_gb_cpp_stuff.hh
+build_gb_cpp.o : build_gb_cpp_stuff.hh
+
+build_gb_global_for_diwo.o : build_gb_run_out.o
+build_gb_for_diwo.o : build_gb_global_for_diwo.o build_gb_run_out.o
+build_gb_diwo_stuff.o : build_gb_diwo_stuff.hh
+build_gb_diwo.o : build_gb_diwo_stuff.hh build_gb_diwo.hh
+build_gb_diwo_main.o : build_gb_diwo.hh
+
+randomize_type.o : randomize_type.f90
+	$(F90) -c $(FFLAGS) -I/home/olmsted/EAM/util/build_mpi randomize_type.f90
+
+randomize_type_dsc.o : randomize_type_dsc.f90
+	$(F90) -c $(FFLAGS) -I/home/olmsted/EAM/util/build_mpi randomize_type_dsc.f90
+
+build_gb : ${OBJECTS} build_gb.o
+	${F90} -o build_gb ${FFLAGS} ${LDFLAGS} ${OBJECTS} build_gb.o ${LDLIBS} ${LAPACK}
+ 
+build_gb_dsc : ${DSC_OBJECTS} build_gb_dsc.o
+	${F90} -o build_gb_dsc ${FFLAGS} ${LDFLAGS} ${DSC_OBJECTS}               \
+                  build_gb_dsc.o ${LDLIBS} ${LAPACK}
+ 
+build_gb_cpp : ${CPP_OBJECTS}
+	${LINK} -o build_gb_cpp ${LINKFLAGS} ${CPP_OBJECTS}                 \
+                  ${LDLIBS} ${LAPACK} ${LIB_LAMMPS}             \
+                  ${LIB_FORTRAN} ${LIB_FFTW} 
+
+build_gb_diwo : ${DIWO_OBJECTS}
+	${LINK} -o build_gb_diwo ${LINKFLAGS} ${DIWO_OBJECTS}                 \
+                  ${LDLIBS} ${LAPACK} ${LIB_LAMMPS}             \
+                  ${LIB_FORTRAN} ${LIB_FFTW} 
+
+ 
+gb_energy : ${OBJECTS} gb_energy.f90 makefile
+	${F90} -o gb_energy ${FFLAGS} ${LDFLAGS}                    \
+                     gb_energy.f90 ${OBJECTS} ${LDLIBS} ${LAPACK}
+
+gb_energy_cc : ${OBJECTS} gb_energy_cc.f90 makefile
+	${F90} -o gb_energy_cc ${FFLAGS} -Iutil ${LDFLAGS} \
+                  gb_energy_cc.f90 ${OBJECTS} ${LDLIBS} ${LAPACK}
+
+gb_energy_cc_dsc : ${DSC_OBJECTS} gb_energy_cc_dsc.f90 gb_energy_input_dsc.o makefile
+	${F90} -o gb_energy_cc_dsc ${FFLAGS} -Iutil ${LDFLAGS}      \
+                  gb_energy_cc_dsc.f90 gb_energy_input_dsc.o ${DSC_OBJECTS} ${LDLIBS} ${LAPACK}
+
+gb_energy_cc_diwo : ${DSC_OBJECTS} gb_energy_cc_diwo.f90 gb_energy_input_dsc.o \
+                    makefile system_interface.o build_gb_run_out.o
+	${F90} -o gb_energy_cc_diwo ${FFLAGS} -Iutil ${LDFLAGS}      \
+                  gb_energy_cc_diwo.f90 gb_energy_input_dsc.o build_gb_run_out.o \
+                  ${DSC_OBJECTS} ${LDLIBS} ${LAPACK}
+
+gb_energy_start : gb_energy_start.f90 gb_energy_input_dsc.o makefile
+	${F90} -o gb_energy_start ${FFLAGS}                                         \
+                    gb_energy_start.f90 gb_energy_input_dsc.o ${LDLIBS} ${LAPACK}
+
+gb_energy_gather : gb_energy_gather.f90 gb_energy_input_dsc.o makefile system_interface.o
+	${F90} -o gb_energy_gather ${FFLAGS}                                         \
+                    gb_energy_gather.f90 gb_energy_input_dsc.o ${LDLIBS} ${LAPACK}
+
+build_gb_for_mob : ${DSC_OBJECTS} build_gb_for_mob.f90 gb_energy_input_dsc.o \
+                   makefile
+	${F90} -o build_gb_for_mob ${FFLAGS} -Iutil ${LDFLAGS}      \
+                  build_gb_for_mob.f90 gb_energy_input_dsc.o ${DSC_OBJECTS} \
+                  ${LDLIBS} ${LAPACK}
+ 
+build_gb_for_sc : ${DSC_OBJECTS} build_gb_for_sc.f90 gb_energy_input_dsc.o \
+                   makefile
+	${F90} -o build_gb_for_sc ${FFLAGS} -Iutil ${LDFLAGS}      \
+                  build_gb_for_sc.f90 gb_energy_input_dsc.o ${DSC_OBJECTS} \
+                  ${LDLIBS} ${LAPACK}
+
+build_gb_perlen : build_gb_perlen.f90 gb_energy_input_dsc.o \
+                   makefile
+	${F90} -o build_gb_perlen ${FFLAGS} -Iutil ${LDFLAGS}      \
+                  build_gb_perlen.f90 gb_energy_input_dsc.o  \
+                  ${LDLIBS} ${LAPACK}
+ 
+
+
+${OBJECTS} ${DSC_OBJECTS} ${OTHER_OBJECTS} : makefile
+
+
+gb_pbv : gb_pbv.f90 makefile
+	${F90} -o gb_pbv ${FFLAGS} ${LDFLAGS} gb_pbv.f90 ${LDLIBS} ${LAPACK}
+

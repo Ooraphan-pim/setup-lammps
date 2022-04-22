@@ -1,0 +1,198 @@
+PBV: 3 Sigma: 3
+4 2 2     4 2 2 
+1 -1 -1     -1 1 1 
+0 2 -2     0 -2 2 
+
+csl_x_step  2.44949
+csl_by_pp 3  csl_by_qq 3  csl_by_dsc 3  lcm 3
+dsc_xx_in_steps  1 0 0 
+dsc
+1/3 -1/3 5/3 
+1/3 -1/3 -1/3 
+0 2 -2 
+
+dsc_denom:  3  nums:
+1 -1 5 
+1 -1 -1 
+0 6 -6 
+
+PBV: 2 Sigma: 5
+2 0 0     2 0 0 
+0 4 2     0 4 -2 
+0 -2 4     0 2 4 
+
+csl_x_step  1
+csl_by_pp 1  csl_by_qq 1  csl_by_dsc 1  lcm 1
+dsc_xx_in_steps  1 0 0 
+dsc
+1 7/5 1/5 
+0 2/5 6/5 
+0 -6/5 -8/5 
+
+dsc_denom:  5  nums:
+5 7 1 
+0 2 6 
+0 -6 -8 
+
+PBV: 4 Sigma: 3
+2 2 0     2 2 0 
+1 -1 1     1 -1 -1 
+2 -2 -4     -2 2 -4 
+
+csl_x_step  1.41421
+csl_by_pp 1  csl_by_qq 1  csl_by_dsc 1  lcm 1
+dsc_xx_in_steps  -1 0 0 
+dsc
+-5/3 -1/3 1/3 
+-1/3 1/3 -1/3 
+1/3 -1/3 -5/3 
+
+dsc_denom:  3  nums:
+-5 -1 1 
+-1 1 -1 
+1 -1 -5 
+
+PBV: 11 Sigma: 13
+2 0 0     2 0 0 
+0 6 4     0 6 -4 
+0 -4 6     0 4 6 
+
+csl_x_step  1
+csl_by_pp 1  csl_by_qq 1  csl_by_dsc 1  lcm 1
+dsc_xx_in_steps  1 0 0 
+dsc
+1 17/13 7/13 
+0 2/13 10/13 
+0 -10/13 -24/13 
+
+dsc_denom:  13  nums:
+13 17 7 
+0 2 10 
+0 -10 -24 
+
+PBV: 14 Sigma: 5
+6 4 2     6 4 -2 
+2 0 -6     -2 0 -6 
+-3 5 -1     -3 5 1 
+
+csl_x_step  0.534522
+csl_by_pp 1  csl_by_qq 1  csl_by_dsc 1  lcm 1
+dsc_xx_in_steps  -3 3 -4 
+dsc
+-7/5 -1 1/5 
+2 0 0 
+-14/5 0 2/5 
+
+dsc_denom:  5  nums:
+-7 -5 1 
+10 0 0 
+-14 0 2 
+
+PBV: 15 Sigma: 7
+6 2 0     6 2 0 
+1 -3 5     1 -3 -5 
+2 -6 -4     -2 6 -4 
+
+csl_x_step  0.632456
+csl_by_pp 1  csl_by_qq 1  csl_by_dsc 1  lcm 1
+dsc_xx_in_steps  -1 0 0 
+dsc
+-5/7 1/7 -11/7 
+1/7 -3/7 -9/7 
+-1/7 3/7 23/7 
+
+dsc_denom:  7  nums:
+-5 1 -11 
+1 -3 -9 
+-1 3 23 
+
+PBV: 21 Sigma: 17
+2 0 0     2 0 0 
+0 8 2     0 8 -2 
+0 -2 8     0 2 8 
+
+csl_x_step  1
+csl_by_pp 1  csl_by_qq 1  csl_by_dsc 1  lcm 1
+dsc_xx_in_steps  1 0 0 
+dsc
+1 23/17 -7/17 
+0 22/17 14/17 
+0 -30/17 -16/17 
+
+dsc_denom:  17  nums:
+17 23 -7 
+0 22 14 
+0 -30 -16 
+
+PBV: 25 Sigma: 9
+2 2 0     2 2 0 
+4 -4 2     4 -4 -2 
+2 -2 -8     -2 2 -8 
+
+csl_x_step  1.41421
+csl_by_pp 1  csl_by_qq 1  csl_by_dsc 1  lcm 1
+dsc_xx_in_steps  -1 0 0 
+dsc
+-13/9 -5/9 7/9 
+-1/3 1/3 1/3 
+-1/9 1/9 -5/9 
+
+dsc_denom:  9  nums:
+-13 -5 7 
+-3 3 3 
+-1 1 -5 
+
+PBV: 30 Sigma: 3
+6 4 2     6 4 -2 
+2 -4 2     -2 4 2 
+4 -2 -8     4 -2 8 
+
+csl_x_step  0.534522
+csl_by_pp 1  csl_by_qq 1  csl_by_dsc 1  lcm 1
+dsc_xx_in_steps  1 -1 0 
+dsc
+-1/3 5/3 -1/3 
+2/3 -4/3 -4/3 
+-2/3 4/3 -2/3 
+
+dsc_denom:  3  nums:
+-1 5 -1 
+2 -4 -4 
+-2 4 -2 
+
+PBV: 32 Sigma: 7
+4 2 2     4 2 2 
+4 -6 -2     -4 2 6 
+2 4 -8     2 -8 4 
+
+csl_x_step  0.816497
+csl_by_pp 1  csl_by_qq 1  csl_by_dsc 1  lcm 1
+dsc_xx_in_steps  1 0 0 
+dsc
+-1/7 5/7 11/7 
+-5/7 -3/7 13/7 
+8/7 2/7 -18/7 
+
+dsc_denom:  7  nums:
+-1 5 11 
+-5 -3 13 
+8 2 -18 
+
+PBV: 35 Sigma: 11
+2 2 0     2 2 0 
+1 -1 3     1 -1 -3 
+6 -6 -4     -6 6 -4 
+
+csl_x_step  1.41421
+csl_by_pp 1  csl_by_qq 1  csl_by_dsc 1  lcm 1
+dsc_xx_in_steps  -1 0 0 
+dsc
+-17/11 -5/11 -7/11 
+-7/11 7/11 1/11 
+13/11 -13/11 -5/11 
+
+dsc_denom:  11  nums:
+-17 -5 -7 
+-7 7 1 
+13 -13 -5 
+

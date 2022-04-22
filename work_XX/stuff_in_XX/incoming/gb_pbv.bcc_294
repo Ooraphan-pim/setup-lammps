@@ -1,0 +1,18 @@
+PBV: 294 Sigma: 13
+6 4 0     6 4 0 
+0 0 2     0 0 -2 
+4 -6 0     -4 6 0 
+
+csl_x_step  3.60555
+csl_by_pp 13  csl_by_qq 13  csl_by_dsc 13  lcm 13
+dsc_xx_in_steps  1 0 0 
+dsc
+-7/13 17/13 1 
+24/13 -36/13 -2 
+-4 6 4 
+
+dsc_denom:  13  nums:
+-7 17 13 
+24 -36 -26 
+-52 78 52 
+

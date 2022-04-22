@@ -1,0 +1,26 @@
+
+*** break between constant and looping commands
+
+log           Q.min.log
+
+clear
+units         metal
+atom_style    atomic
+pair_style    eam/fs
+boundary      s p p
+read_data     Q.data
+pair_coeff    * * ../../potential/XX_mm.eam.fs XX XX XX XX XX
+thermo        0
+thermo_style  custom step pe etotal pxx pyy pzz pxy pxz pyz
+
+group         leftedge   type 4
+group         rightedge  type 5
+fix           leftave    leftedge  aveforce 0.0 0.0 0.0
+fix           rightave   rightedge aveforce 0.0 0.0 0.0
+
+minimize      1.0e-10  1000  10000
+write_restart Q.temp.restart
+
+*** end of looping commands
+
+

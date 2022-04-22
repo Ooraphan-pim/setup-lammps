@@ -1,0 +1,197 @@
+diff -C3 lammps-4Oct06/src/fix_energy.h src_ebyt_2/fix_energy.h
+*** lammps-4Oct06/src/fix_energy.h	2006-09-27 13:51:33.000000000 -0600
+--- src_ebyt_2/fix_energy.h	2006-10-30 14:24:18.000000000 -0700
+***************
+*** 18,23 ****
+--- 18,24 ----
+  
+  class FixEnergy : public Fix {
+    friend class DumpCustom;
++   friend class MinCG;
+  
+   public:
+    FixEnergy(int, char **);
+diff -C3 lammps-4Oct06/src/min_cg.cpp src_ebyt_2/min_cg.cpp
+*** lammps-4Oct06/src/min_cg.cpp	2006-09-27 13:51:33.000000000 -0600
+--- src_ebyt_2/min_cg.cpp	2006-10-30 14:24:05.000000000 -0700
+***************
+*** 41,46 ****
+--- 41,47 ----
+  #include "timer.h"
+  #include "memory.h"
+  #include "error.h"
++ #include "fix_energy.h"
+  
+  #define MIN(A,B) ((A) < (B)) ? (A) : (B)
+  #define MAX(A,B) ((A) > (B)) ? (A) : (B)
+***************
+*** 71,76 ****
+--- 72,86 ----
+    for (int i = 0; i < modify->nfix; i++)
+      if (strcmp(modify->fix[i]->style,"MINIMIZE") == 0) ifix_minimize = i;
+  
++   // create fix for computing energy by type
++ 
++   char * * fixarg_2 = new char*[3];
++   fixarg_2[0] = "MINIMIZE_ENERGY";
++   fixarg_2[1] = "all";
++   fixarg_2[2] = "ENERGY";
++   modify->add_fix(3,fixarg_2);
++   delete [] fixarg_2;
++ 
+    // zero gradient vectors before first atom exchange
+  
+    setup_vectors();
+***************
+*** 136,141 ****
+--- 146,153 ----
+    output->thermo->compute_pe();
+    ecurrent = output->thermo->potential_energy;
+  
++   write_energy_by_type(0);
++ 
+    // stats for Finish to print
+  	
+    einitial = ecurrent;
+***************
+*** 176,181 ****
+--- 188,195 ----
+    }
+    timer->barrier_stop(TIME_LOOP);
+  
++   write_energy_by_type(1);
++ 
+    // delete fix at end of run, so its atom arrays won't persist
+  
+    modify->delete_fix("MINIMIZE");
+***************
+*** 202,207 ****
+--- 216,298 ----
+  }
+  
+  /* ----------------------------------------------------------------------
++    write energy by type
++ ------------------------------------------------------------------------- */
++ 
++ void MinCG::write_energy_by_type(int when)
++ {
++   char * initial = "Initial";
++   char * final = "Final";
++   char * when_string;
++ 
++   if( when == 0 ) {
++     when_string = initial;
++   } else if ( when == 1 ) {
++     when_string = final;
++   } else {
++     error->all("MinCG::write_energy_by_type  invalid when\n");
++   }
++ 
++   int ntypes = atom->ntypes;
++   int nlocal = atom->nlocal;
++   int * type = atom->type;
++ 
++   int ifix_energy; 
++   for (int ii = 0; ii < modify->nfix; ++ii) {
++     if (strcmp(modify->fix[ii]->style,"ENERGY") == 0) {
++       ifix_energy = ii;
++     }
++   }
++ 
++   modify->fix[ifix_energy]->dump();
++ 
++   double * energy = ((FixEnergy *) modify->fix[ifix_energy])->energy;
++ 
++   int * our_type_count = new int[ntypes];
++   int * type_count = new int[ntypes];
++   double * our_type_energy = new double[ntypes];
++   double * type_energy = new double[ntypes];
++ 
++   for( int ii = 0; ii < ntypes; ++ii ) {
++     our_type_count[ii] = 0;
++     our_type_energy[ii] = 0.0;
++   }
++ 
++   for( int ii = 0; ii < nlocal; ++ii ) {
++     ++our_type_count[type[ii]-1];
++     our_type_energy[type[ii]-1] += energy[ii];
++   }
++ 
++   MPI_Allreduce(our_type_count, type_count, ntypes, MPI_INT, MPI_SUM, world);
++   MPI_Allreduce(our_type_energy, type_energy, ntypes, MPI_DOUBLE, MPI_SUM, world);
++ 
++   int me;
++   MPI_Comm_rank(world, &me);
++   if( me != 0 ) {
++     return;
++   }
++ 
++   char str[128];
++   for( int ii = 0; ii < ntypes; ++ii ) {
++     snprintf(str, 128, "%s_energy_by_type  %d %d %.6f\n", 
++    	     when_string, ii+1, type_count[ii], type_energy[ii]);
++     error->warning(str);
++     if( logfile ) {
++       fprintf(logfile, str);
++       fflush(logfile);
++     }
++   }
++ 
++   delete [] our_type_count;
++   delete [] type_count;
++   delete [] our_type_energy;
++   delete [] type_energy;
++ 
++   return;
++ }
++ 
++ 
++ /* ----------------------------------------------------------------------
+     setup before run
+  ------------------------------------------------------------------------- */
+  
+***************
+*** 579,584 ****
+--- 670,676 ----
+  {
+    int i,iter;
+    double eta,eta_prev,sigma0,alphadelta,fme,fmax,dsq,e0,tmp;
++   double sigma_max;
+    double *f;
+    double epssq = SECANT_EPS * SECANT_EPS;
+  
+***************
+*** 599,604 ****
+--- 691,697 ----
+    if (fmax == 0.0) return 1;
+  
+    sigma0 = mindist/fmax;
++   sigma_max = maxdist/fmax;
+  
+    e0 = eng;
+    for (i = 0; i < n; i++) x[i] += sigma0*dir[i];
+***************
+*** 637,642 ****
+--- 730,738 ----
+      alphadelta *= eta / (eta_prev - eta);
+      eta_prev = eta;
+      if (alphadelta*alphadelta*dsq <= epssq) break;
++     if( fabs(alphadelta) > sigma_max ) {
++       alphadelta = sigma_max * alphadelta / fabs(alphadelta);
++     }
+    }
+  
+    // if exited loop on first iteration, func eval was at alpha = 0.0
+diff -C3 lammps-4Oct06/src/min_cg.h src_ebyt_2/min_cg.h
+*** lammps-4Oct06/src/min_cg.h	2006-09-27 13:51:33.000000000 -0600
+--- src_ebyt_2/min_cg.h	2006-10-30 14:24:22.000000000 -0700
+***************
+*** 53,58 ****
+--- 53,59 ----
+    void setup_vectors();
+    void eng_force(int *, double **, double **, double *);
+    void force_clear(int);
++   void write_energy_by_type(int);
+  };
+  
+  #endif
